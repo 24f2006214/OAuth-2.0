@@ -1,5 +1,3 @@
-from datetime import datetime, timezone
-
 import jwt
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -37,16 +35,12 @@ async def verify(request: VerifyRequest):
             options={"require": ["iss", "aud", "exp"]},
         )
 
-        # Keep the expiry requirement explicit as well as relying on PyJWT.
-        if datetime.fromtimestamp(claims["exp"], tz=timezone.utc) <= datetime.now(timezone.utc):
-            raise jwt.InvalidTokenError("expired")
-
         return {
             "valid": True,
             "email": claims.get("email"),
             "sub": claims.get("sub"),
             "aud": claims.get("aud"),
         }
-    except (jwt.InvalidTokenError, ValueError, TypeError, KeyError):
+    except Exception:
         return JSONResponse(status_code=401, content={"valid": False})
 
